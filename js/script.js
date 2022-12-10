@@ -1,4 +1,4 @@
-const Ocean = require('./js/Ocean.js');
+const Ocean = require('./additionalClasses/Ocean.js');
 
   //let canvas = document.getElementById('canvas');
 
