@@ -1,12 +1,8 @@
 const MAX = 32767;
 
-module.exports = {
-    Random: class Random {
-        constructor() { }
-    },
-
+export default class Random {
     //функція знаходження рандомного числа між двома заданими числами
-    nextIntBetween: function (min, max) {
+    static nextIntBetween(min, max) {
         return (Math.floor(Math.random() * (max - min + 1)) + min);
     }
-};
+}

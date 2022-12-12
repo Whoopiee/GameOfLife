@@ -1,6 +1,4 @@
-
-//константи
-module.exports = {
+const Constants = {
     MaxRows: 50,
     MaxCols: 70,
 
@@ -17,3 +15,5 @@ module.exports = {
     TimeToFeed: 6,
     TimeToReproduce: 6
 };
+
+export default Constants;

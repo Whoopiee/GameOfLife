@@ -1,11 +1,10 @@
-const Constants = require('./additionalClasses/Constants.js');
-const Ocean = require('./additionalClasses/Ocean.js');
+import Ocean from './additionalClasses/Ocean.js';
 
-let canvas = document.getElementById('canvas');
+const canvas = document.getElementById('canvas');
 
 // canvas.style.width = `${(Constants.MaxCols * Constants.MaxRows)*10}px`;
 // canvas.style.height = `${(Constants.MaxCols * Constants.MaxRows)*10}px`;
-let oceantest = new Ocean.Ocean(canvas);
+const oceantest = new Ocean(canvas);
 
 oceantest.initialize();
 
