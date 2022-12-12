@@ -1,0 +1,17 @@
+* {
+    margin: 0;
+    padding: 0;
+    background-color: rgb(43, 41, 41);
+}
+
+.canvas-wrapper {
+    width: 100%;
+    text-align: center;
+}
+
+#canvas {
+    width: 1000px;
+    height: 1000px;
+    top: auto;
+    display: inline;
+}
