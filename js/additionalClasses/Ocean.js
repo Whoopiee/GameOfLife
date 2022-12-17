@@ -42,14 +42,28 @@ export default class Ocean {
     }
 
     getEmptyCellCoord() { //подумати над більш ефективною реалізацією
-        let x, y;
+        // let x, y;
 
-        do {
-            x = Random.nextIntBetween(0, this._numCols - 1);
-            y = Random.nextIntBetween(0, this._numRows - 1);
-        } while (this.cells[y][x].getImage() != Constants.DefaultImage);
+        // do {
+        //     x = Random.nextIntBetween(0, this._numCols - 1);
+        //     y = Random.nextIntBetween(0, this._numRows - 1);
+        // } while (this.cells[y][x].getImage() != Constants.DefaultImage);
 
-        return this.cells[y][x].getOffset();
+        let arr = [];
+        for (let row = 0; row < Constants.MaxRows; row++) {
+            for (let col = 0; col < Constants.MaxCols; col++) {
+                if(this.cells[row][col].image == Constants.DefaultImage)
+                arr.push(this.cells[row][col]);
+            }
+        }
+
+        let position = 0;
+
+        if(arr.length != 0){
+            position = Random.nextIntBetween(0, arr.length);
+        }
+        
+         return arr[position].getOffset();
     }
 
     //заповнення Океану пустими комірками
