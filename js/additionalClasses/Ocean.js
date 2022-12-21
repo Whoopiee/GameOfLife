@@ -5,179 +5,209 @@ import Coordinate from './Coordinate.js';
 import Obstacle from './Obstacle.js';
 import Predator from './Predator.js';
 import Prey from './Prey.js';
+import Viewer from './Viewer.js';
 
 export default class Ocean {
-    _numRows = 0;
-    _numCols = 0;
+    #numRows = 0;
+    #numCols = 0;
     _size = 0;
-    _numPrey = 0;
-    _numPredators = 0;
-    _numObstacles = 0;
-    cells = [];
+    #numPrey = 0;
+    #numIter;
+    #numPredators = 0;
+    #numObstacles = 0;
+    #cells;
+    alreadyProcessed = [];
 
-    constructor(canvas) {
+    constructor(canvas, doc) {
         this.canvas = canvas;
         this.context = this.canvas.getContext('2d');
+        this.document = doc;
     }
 
     //ініціалізація полів класа
     initialize() {
-        this._numRows = Constants.MaxRows;
-        this._numCols = Constants.MaxCols;
-        this._size = this._numRows * this._numCols;
-        this._numPrey = Constants.DefaultNumPrey;
-        this._numPredators = Constants.DefaultNumPredators;
-        this._numObstacles = Constants.DefaultNumObstacles;
+        Viewer.addVariablesToConst(this.document);
+        this.#numPrey = Constants.DefaultNumPrey;
+        this.#numPredators = Constants.DefaultNumPredators;
+        this.#numRows = Constants.MaxRows;
+        this.#numCols = Constants.MaxCols;
+        this.#numIter = 0;
+        this.#cells = [];
+        this._size = this.#numRows * this.#numCols;
+        this.#numObstacles = Constants.DefaultNumObstacles;
         this.initCells();
     }
 
     //додавання усіх елементів до "Океану"
     initCells() {
         this.addEmptyCells();
-
         this.addObstacles();
         this.addPrey();
         this.addPredators();
 
     }
 
-    getEmptyCellCoord() { //подумати над більш ефективною реалізацією
-        // let x, y;
+    //пошук рандомної точки у просторі (переробити)
+    getEmptyCellCoord() { 
+        let x, y;
 
-        // do {
-        //     x = Random.nextIntBetween(0, this._numCols - 1);
-        //     y = Random.nextIntBetween(0, this._numRows - 1);
-        // } while (this.cells[y][x].getImage() != Constants.DefaultImage);
-
-        let arr = [];
-        for (let row = 0; row < Constants.MaxRows; row++) {
-            for (let col = 0; col < Constants.MaxCols; col++) {
-                if(this.cells[row][col].image == Constants.DefaultImage)
-                arr.push(this.cells[row][col]);
-            }
-        }
-
-        let position = 0;
-
-        if(arr.length != 0){
-            position = Random.nextIntBetween(0, arr.length);
-        }
-        
-         return arr[position].getOffset();
+        do {
+            x = Random.nextIntBetween(0, this.#numCols - 1);
+            y = Random.nextIntBetween(0, this.#numRows - 1);
+        } while (this.#cells[y][x].getCurrentColor() != Constants.DefaultColor);
+        return this.#cells[y][x].getOffset();
     }
 
     //заповнення Океану пустими комірками
     addEmptyCells() {
-        for (let row = 0; row < this._numRows; row++) {
-            this.cells[row] = [];
-            for (let col = 0; col < this._numCols; col++) {
-                this.cells[row][col] = new Cell(this, new Coordinate(col, row));
+        for (let row = 0; row < this.#numRows; row++) {
+            this.#cells[row] = [];
+            this.alreadyProcessed[row] = [];
+            for (let col = 0; col < this.#numCols; col++) {
+                this.#cells[row][col] = new Cell(this, new Coordinate(col, row));
+                this.alreadyProcessed[row][col] = false; 
             }
-        }
-    }
-
-    //додавання здобичи
-    addPrey() {
-        for (let i = 0; i < this._numPrey; i++) {
-            const empty = this.getEmptyCellCoord();
-            this.cells[empty.getY()][empty.getX()] = new Prey(this, empty);
         }
     }
 
     //додавання перешкод
     addObstacles() {
-        for (let i = 0; i < this._numObstacles; i++) {
+        if (Constants.DefaultNumObstacles >= this._size) return;
+        for (let i = 0; i < this.#numObstacles; i++) {
             const empty = this.getEmptyCellCoord();
-            this.cells[empty.getY()][empty.getX()] = new Obstacle(this, empty);
+            this.#cells[empty.getY()][empty.getX()] = new Obstacle(this, empty);
         }
+        this._size -= this.#numObstacles; 
+    }
+
+    //додавання здобичи
+    addPrey() {
+        if (Constants.DefaultNumPrey >= this._size) return;
+        for (let i = 0; i < this.#numPrey; i++) {
+            const empty = this.getEmptyCellCoord();
+            this.#cells[empty.getY()][empty.getX()] = new Prey(this, empty);
+        }
+        this._size -= this.#numPrey;
     }
 
     //додавання хижаків
     addPredators() {
-        let empty = new Coordinate();
-
-        for (let i = 0; i < this._numPredators; i++) {
-            empty = this.getEmptyCellCoord();
-            this.cells[empty.getY()][empty.getX()] = new Predator(this, empty);
+        if (Constants.DefaultNumPredators >= this._size) return;
+        for (let i = 0; i < this.#numPredators; i++) {
+            const empty = this.getEmptyCellCoord();
+            this.#cells[empty.getY()][empty.getX()] = new Predator(this, empty);
         }
+        this._size -= this.#numPredators;
     }
 
     //геттери та сеттери
-    getNumPrey() {
-        return this._numPrey;
+    get NumPrey() {
+        return this.#numPrey;
     }
 
     setNumPrey(num) {
-        this._numPrey = num;
+        this.#numPrey = num;
     }
 
     getNumPredators() {
-        return this._numPredators;
+        return this.#numPredators;
     }
 
     setNumPredators(num) {
-        this._numPredators = num;
+        this.#numPredators = num;
     }
 
-    //виведення даних стану Океану
-    displayStats(iteration) {
-        console.log(`Iteration: ${iteration}, Obst: ${this._numObstacles}, Predat: ${this._numPredators}, Prey: ${this._numPrey}`);
+    setNumObst(num) {
+        this.#numObstacles = num;
+    }
+
+    getNumObst() {
+        return this.#numObstacles;
+    }
+
+    getNumCols() {
+        return this.#numCols;
+    }
+
+    setNumColss(num) {
+        this.#numCols = num;
+    }
+
+    getNumRows() {
+        return this.#numRows;
+    }
+
+    setNumRows(num) {
+        this.#numRows = num;
+    }
+
+    getIter(){
+        return this.#numIter;
+    }
+
+    setNumIter(iteration){
+        this.#numIter = iteration;
     }
 
     //функція запуску "життя"
     run() {
-        let numIter = 0;
-        if (numIter > 1000 || numIter < 0) numIter = 1000;
-        window.requestAnimationFrame(() => this.gameLoop(numIter));
-    }
-
-    //функція виведення даних про стан кожної комірки у задовільному вигляді
-    view() {
-        let arr = [];
-        for (let row = 0; row < Constants.MaxRows; row++) {
-            arr[row] = [];
-            for (let col = 0; col < Constants.MaxCols; col++) {
-                this.cells[row][col].draw();
-                arr[row][col] = this.cells[row][col].image;
-            }
-        }
-
-        arr.forEach((item) => {
-            console.log(item);
-        });
+        window.requestAnimationFrame(() => this.gameLoop());
     }
 
     //запуск логіки "життя" кожної комірки двовимірного масиву і малювання ігрового поля кожні 1000мс
-    gameLoop(numIter) {
-
-        if ((this._numPredators > 0 && this._numPrey > 0) && numIter < Constants.DefaultNumIterations) {
+    gameLoop() {
+        
+        if ((this.#numPredators > 0 && this.#numPrey > 0) && this.#numIter < Constants.DefaultNumIterations) {
             this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.displayStats(numIter + 1);
-            this.view();
-            for (let row = 0; row < this._numRows; row++)
-                for (let col = 0; col < this._numCols; col++) {
-                    if (!this.cells[row][col].moved) {
-                        this.cells[row][col].process();
+            Viewer.displayStats(this, this.document);
+            Viewer.draw(this);
+            for (let row = 0; row < this.#numRows; row++)
+                for (let col = 0; col < this.#numCols; col++) {
+                    if (!this.alreadyProcessed[row][col]) {
+                        const inUseCell = this.#cells[row][col];
+                        this.#cells[row][col].process();
+                        this.alreadyProcessed[inUseCell.getOffset().getY()][inUseCell.getOffset().getX()] = true;
+
                     }
                 }
 
-            for (let row = 0; row < this._numRows; row++)
-                for (let col = 0; col < this._numCols; col++) {
-                    if (this.cells[row][col].moved)
-                        this.cells[row][col].moved = false;
+            for (let row = 0; row < this.#numRows; row++)
+                for (let col = 0; col < this.#numCols; col++) {
+                    if (this.alreadyProcessed[row][col])
+                    this.alreadyProcessed[row][col] = false;
                 }
 
-            numIter++;
-        } else if (this._numPredators == 0 || this._numPrey == 0 || numIter >= Constants.DefaultNumIterations) {
-            for (let row = 0; row < this._numRows; row++)
-                for (let col = 0; col < this._numCols; col++)
-                    this.cells[row][col].draw();
+            this.#numIter++;
+        } else if (this.#numPredators == 0 || this.#numPrey == 0 || this.#numIter >= Constants.DefaultNumIterations) {
+            Viewer.draw(this);
+            Viewer.gameOver(this.document);
             clearTimeout();
         }
         setTimeout(() => {
-            window.requestAnimationFrame(() => this.gameLoop(numIter));
-        }, 1000);
+            window.requestAnimationFrame(() => this.gameLoop());
+        }, 800);
 
     }
 
+    //отримання об'єкту Клітинки по її координатам у двовимірномк масиві
+    getCellAt(aCoord) {
+        return this.#cells[aCoord.getY()][aCoord.getX()];
+    }
+
+    //встановлення певного об'єкту Клітини у задане місце двовимірного масиву
+    assignCellAt(aCoord, aCell) {
+        this.#cells[aCoord.getY()][aCoord.getX()] = aCell;
+    }
+
+    getCellByCoord(y, x) {
+        if (this.#cells[y][x]) return this.#cells[y][x];
+    }
+
+    cellGetter(){
+        return this.#cells;
+    }
+
+    clearAll(){
+        this.#numIter = Constants.DefaultNumIterations;
+    }
 }
